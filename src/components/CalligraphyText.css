@@ -1,0 +1,50 @@
+.calligraphy-text {
+  margin: 0;
+  color: #2b2620;
+  /* font-family/font-size are set as an inline style from settings (see
+     CalligraphyText.tsx) — deliberately NOT redeclared per-direction below,
+     so switching horizontal/vertical never changes the glyphs themselves. */
+}
+
+/* Each segment (a line or a column) is itself a flex row/column of
+   individual character spans, spaced with "gap" instead of letter-spacing.
+   letter-spacing is added after every character in some engines —
+   including the last one — which left a visibly bigger blank margin on
+   one edge than the others. gap never adds space past the last item, so
+   the paper's fit-content box now hugs the actual glyphs evenly. */
+.calligraphy-text__segment {
+  margin: 0;
+  display: flex;
+}
+
+.calligraphy-text--horizontal {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  /* Kept close to the intra-character gap below — a noticeably bigger
+     gap here reads as an extra blank line wedged between the real ones. */
+  gap: 0.35em;
+}
+
+.calligraphy-text--horizontal .calligraphy-text__segment {
+  flex-direction: row;
+  gap: 0.3em;
+}
+
+/* Traditional reading order runs right to left, so segments are laid out
+   in reverse (the first segment ends up as the rightmost column). */
+.calligraphy-text--vertical {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-start;
+  justify-content: center;
+  /* Kept close to the intra-character gap below — a noticeably bigger
+     gap here reads as an extra blank column wedged between the real ones. */
+  gap: 0.45em;
+}
+
+.calligraphy-text--vertical .calligraphy-text__segment {
+  flex-direction: column;
+  gap: 0.35em;
+}

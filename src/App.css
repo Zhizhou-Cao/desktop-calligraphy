@@ -1,0 +1,231 @@
+:root {
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+.stage {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  /* Flush to the top-left, not centered: useAutoResizeWindow positions the
+     native window assuming the paper always sits exactly OUTER_MARGIN from
+     the window's own top-left corner. Centering would be fine once the
+     window is settled at the right size, but during the (async) gap
+     between the DOM growing — e.g. the settings panel mounting — and the
+     native resize landing, a centered layout splits that size mismatch
+     evenly on both edges, pushing the paper half off-screen and making the
+     page scrollable. Vertical layouts need a much bigger resize when
+     settings opens, so that gap was wide enough to actually be visible:
+     the leading character got clipped and a scrollbar appeared. Flush
+     top-left keeps 100% of any transient slack on the bottom/right, right
+     where the resize hook already expects it.
+  */
+  align-items: flex-start;
+  justify-content: flex-start;
+  cursor: default;
+  user-select: none;
+}
+
+.stage.movable {
+  cursor: move;
+}
+
+.composition {
+  /* Holds the paper column and — when open — the settings panel side by
+     side (either order, see App.tsx's panelSide). Sized to fit whichever
+     of those is currently rendered; the window itself is then resized to
+     match this, see hooks/useAutoResizeWindow.ts.
+     align-items is flex-start (not center) so the paper column's top edge
+     is always flush with the composition's top edge, regardless of the
+     settings panel's height — that's what lets the resize hook keep the
+     paper's on-screen position fixed purely from its own offset within
+     here. */
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.paper-column {
+  /* Paper on top, the library popup (when open) directly below it — kept
+     in their own column so that pair moves as a unit within .composition,
+     and the library popup never overlaps the settings panel. flex-start
+     keeps the paper flush at the column's own top-left regardless of how
+     wide the library popup below it is. */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.paper {
+  position: relative;
+  /* Its own stacking context, so .paper__backdrop's z-index:-1 below is
+     scoped to just this card and can't be misread against .composition's
+     other children (the settings panel). */
+  z-index: 0;
+  /* Sized to its content (the calligraphy text) plus padding — not a fixed
+     box. padding itself is user-adjustable (settings.padding) and applied
+     as an inline style in App.tsx, one value on all four sides so the
+     blank margin around the text reads as even. Background/texture live on
+     .paper__backdrop (below), so its opacity can be turned down without
+     fading the text or the settings button too. */
+  width: fit-content;
+  height: fit-content;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.2s ease;
+}
+
+.movable .paper {
+  box-shadow:
+    0 0 0 1.5px rgba(90, 80, 65, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.08),
+    0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.paper__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  /* opacity itself is an inline style driven by settings.paperOpacity. */
+  pointer-events: none;
+}
+
+/* Paper styles — all CSS-generated grain/texture, no image assets.
+   Each one layers: a few soft irregular blotches (handmade paper is never
+   perfectly even), three fiber directions instead of two so the crosshatch
+   reads as organic rather than a printed grid, and a faint vignette toward
+   the edges the way a mounted scroll or card catches shadow at its border. */
+
+.paper--rice .paper__backdrop {
+  background-color: #f2e8d0;
+  background-image:
+    radial-gradient(circle at 12% 18%, rgba(133, 105, 58, 0.09), transparent 32%),
+    radial-gradient(circle at 88% 12%, rgba(133, 105, 58, 0.07), transparent 38%),
+    radial-gradient(circle at 25% 85%, rgba(133, 105, 58, 0.08), transparent 40%),
+    radial-gradient(circle at 78% 72%, rgba(133, 105, 58, 0.06), transparent 42%),
+    radial-gradient(ellipse at center, transparent 55%, rgba(90, 68, 38, 0.06) 100%),
+    repeating-linear-gradient(
+      96deg,
+      rgba(120, 95, 55, 0.05) 0px,
+      rgba(120, 95, 55, 0.05) 0.6px,
+      transparent 0.6px,
+      transparent 2.6px
+    ),
+    repeating-linear-gradient(
+      4deg,
+      rgba(120, 95, 55, 0.04) 0px,
+      rgba(120, 95, 55, 0.04) 0.6px,
+      transparent 0.6px,
+      transparent 3.2px
+    ),
+    repeating-linear-gradient(
+      152deg,
+      rgba(120, 95, 55, 0.03) 0px,
+      rgba(120, 95, 55, 0.03) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+}
+
+.paper--azure .paper__backdrop {
+  background-color: #e3e6dc;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(75, 95, 90, 0.09), transparent 34%),
+    radial-gradient(circle at 85% 15%, rgba(75, 95, 90, 0.06), transparent 38%),
+    radial-gradient(circle at 30% 82%, rgba(75, 95, 90, 0.07), transparent 42%),
+    radial-gradient(circle at 80% 75%, rgba(75, 95, 90, 0.05), transparent 40%),
+    radial-gradient(ellipse at center, transparent 55%, rgba(60, 75, 70, 0.07) 100%),
+    repeating-linear-gradient(
+      96deg,
+      rgba(70, 90, 85, 0.045) 0px,
+      rgba(70, 90, 85, 0.045) 0.6px,
+      transparent 0.6px,
+      transparent 2.6px
+    ),
+    repeating-linear-gradient(
+      4deg,
+      rgba(70, 90, 85, 0.035) 0px,
+      rgba(70, 90, 85, 0.035) 0.6px,
+      transparent 0.6px,
+      transparent 3.2px
+    ),
+    repeating-linear-gradient(
+      152deg,
+      rgba(70, 90, 85, 0.03) 0px,
+      rgba(70, 90, 85, 0.03) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+}
+
+.paper--aged .paper__backdrop {
+  background-color: #d3bd8c;
+  background-image:
+    radial-gradient(circle at 18% 15%, rgba(110, 75, 30, 0.16), transparent 38%),
+    radial-gradient(circle at 82% 22%, rgba(110, 75, 30, 0.12), transparent 42%),
+    radial-gradient(circle at 30% 85%, rgba(110, 75, 30, 0.14), transparent 46%),
+    radial-gradient(circle at 78% 78%, rgba(110, 75, 30, 0.1), transparent 44%),
+    radial-gradient(ellipse at center, transparent 50%, rgba(80, 52, 20, 0.12) 100%),
+    repeating-linear-gradient(
+      96deg,
+      rgba(100, 68, 28, 0.07) 0px,
+      rgba(100, 68, 28, 0.07) 0.6px,
+      transparent 0.6px,
+      transparent 2.6px
+    ),
+    repeating-linear-gradient(
+      4deg,
+      rgba(100, 68, 28, 0.055) 0px,
+      rgba(100, 68, 28, 0.055) 0.6px,
+      transparent 0.6px,
+      transparent 3.2px
+    ),
+    repeating-linear-gradient(
+      152deg,
+      rgba(100, 68, 28, 0.04) 0px,
+      rgba(100, 68, 28, 0.04) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+}
+
+.paper--plain .paper__backdrop {
+  background-color: #f7f2e6;
+  background-image:
+    radial-gradient(circle at 20% 25%, rgba(120, 100, 70, 0.05), transparent 40%),
+    radial-gradient(circle at 80% 78%, rgba(120, 100, 70, 0.04), transparent 42%),
+    radial-gradient(ellipse at center, transparent 60%, rgba(90, 75, 50, 0.05) 100%),
+    repeating-linear-gradient(
+      96deg,
+      rgba(110, 92, 60, 0.035) 0px,
+      rgba(110, 92, 60, 0.035) 0.6px,
+      transparent 0.6px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      4deg,
+      rgba(110, 92, 60, 0.028) 0px,
+      rgba(110, 92, 60, 0.028) 0.6px,
+      transparent 0.6px,
+      transparent 3.6px
+    );
+}
