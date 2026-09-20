@@ -5,7 +5,7 @@
 A small always-on-top macOS desktop ornament that displays classical Chinese calligraphy phrases on a borderless, transparent "rice paper" card. Built with Tauri 2 + React + TypeScript.
 
 <p align="center">
-  <img src="docs/screenshot-desktop.png" alt="摆件常驻桌面一角的示意图" width="720">
+  <img src="docs/screenshot-desktop.jpg" alt="摆件常驻桌面一角的示意图" width="720">
 </p>
 
 ## 功能
