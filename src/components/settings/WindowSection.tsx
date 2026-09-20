@@ -8,11 +8,18 @@ interface WindowSectionProps {
 
 export function WindowSection({ windowBehavior, onChange }: WindowSectionProps) {
   return (
-    <ToggleRow
-      label="画布锁定"
-      checked={windowBehavior.alwaysOnTop}
-      onChange={(value) => onChange({ alwaysOnTop: value })}
-    />
+    <>
+      <ToggleRow
+        label="画布锁定"
+        checked={windowBehavior.alwaysOnTop}
+        onChange={(value) => onChange({ alwaysOnTop: value })}
+      />
+      <ToggleRow
+        label="仅在此页"
+        checked={windowBehavior.onlyCurrentSpace}
+        onChange={(value) => onChange({ onlyCurrentSpace: value })}
+      />
+    </>
   );
 }
 

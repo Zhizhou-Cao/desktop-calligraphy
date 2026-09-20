@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { currentMonitor, getCurrentWindow } from "@tauri-apps/api/window";
 import { CalligraphyText } from "./components/CalligraphyText";
 import { LibraryPopup } from "./components/LibraryPopup";
@@ -91,6 +93,14 @@ function App() {
     });
   }, [windowBehavior.alwaysOnTop]);
 
+  // "仅在此页" — no high-level Tauri API for this, so it goes through the
+  // set_all_spaces Rust command (see src-tauri/src/lib.rs) directly.
+  useEffect(() => {
+    invoke("set_all_spaces", { enabled: !windowBehavior.onlyCurrentSpace }).catch(() => {
+      // Best-effort — nothing to recover if the window is already gone.
+    });
+  }, [windowBehavior.onlyCurrentSpace]);
+
   function toggleMovable() {
     setMovable((prev) => {
       const next = !prev;
@@ -104,7 +114,10 @@ function App() {
     });
   }
 
-  async function openSettings() {
+  // Stable identity — used as a dependency below and as the menu-event
+  // handler, neither of which should resubscribe just because some
+  // unrelated state changed.
+  const openSettings = useCallback(async () => {
     // Default to the right; only flip to the left if there's genuinely
     // not enough room on the current monitor's usable area.
     let side: PanelSide = "right";
@@ -128,7 +141,33 @@ function App() {
     }
     setPanelSide(side);
     setSettingsOpen(true);
-  }
+  }, []);
+
+  // Shared by the settings-gear icon and the native menu bar's "设置" item
+  // (see src-tauri/src/lib.rs) — clicking either one should do exactly the
+  // same thing: unlock the canvas if needed, then open (or, if already
+  // open, close) both the settings panel and the library popup.
+  const toggleSettingsPanel = useCallback(() => {
+    setMovable(true);
+    if (settingsOpen) {
+      setSettingsOpen(false);
+    } else {
+      void openSettings();
+    }
+  }, [settingsOpen, openSettings]);
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let cancelled = false;
+    listen("toggle-settings", () => toggleSettingsPanel()).then((fn) => {
+      if (cancelled) fn();
+      else unlisten = fn;
+    });
+    return () => {
+      cancelled = true;
+      unlisten?.();
+    };
+  }, [toggleSettingsPanel]);
 
   function updateSettings(patch: Partial<CalligraphySettings>) {
     setSettings((prev) => ({ ...prev, ...patch }));
@@ -207,16 +246,7 @@ function App() {
       {/* Anchored to the paper's own corner, so it always tracks the card
           instead of floating over the window at large. */}
       {movable && (
-        <SettingsButton
-          active={settingsOpen}
-          onClick={() => {
-            if (settingsOpen) {
-              setSettingsOpen(false);
-            } else {
-              void openSettings();
-            }
-          }}
-        />
+        <SettingsButton active={settingsOpen} onClick={toggleSettingsPanel} />
       )}
     </div>
   );
