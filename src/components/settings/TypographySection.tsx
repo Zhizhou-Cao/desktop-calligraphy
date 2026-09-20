@@ -1,6 +1,9 @@
 import {
   ALIGNMENT_MAX,
   ALIGNMENT_MIN,
+  CHAR_SPACING_MAX,
+  CHAR_SPACING_MIN,
+  CHAR_SPACING_STEP,
   FONT_OPTIONS,
   FONT_SIZE_MAX,
   FONT_SIZE_MIN,
@@ -98,6 +101,22 @@ export function TypographySection({
           style: { fontFamily: font.stack },
         }))}
         onChange={(fontFamily) => onChange({ fontFamily })}
+      />
+
+      <ToggleRow
+        label="加粗"
+        checked={settings.bold}
+        onChange={(value) => onChange({ bold: value })}
+      />
+
+      <Stepper
+        label="字距"
+        value={settings.charSpacing}
+        min={CHAR_SPACING_MIN}
+        max={CHAR_SPACING_MAX}
+        step={CHAR_SPACING_STEP}
+        formatValue={(value) => value.toFixed(2)}
+        onChange={(value) => onChange({ charSpacing: Math.round(value * 100) / 100 })}
       />
 
       <Select

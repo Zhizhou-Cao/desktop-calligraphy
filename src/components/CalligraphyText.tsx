@@ -19,6 +19,8 @@ export function CalligraphyText({
   alignment,
   fontFamily,
   fontSize,
+  bold,
+  charSpacing,
 }: CalligraphyTextProps) {
   const segments = buildSegments(text, lineBreak).map((segment) =>
     showPunctuation ? segment : stripPunctuation(segment, lineBreak),
@@ -32,9 +34,10 @@ export function CalligraphyText({
   const offsetProperty: keyof CSSProperties =
     direction === "horizontal" ? "marginLeft" : "marginTop";
 
-  // font-family/font-size are the ONLY things that control how the glyphs
-  // themselves look — deliberately the same regardless of direction,
-  // lineBreak, or punctuation, so switching those never shifts the type.
+  // font-family/font-size/bold/charSpacing are the ONLY things that control
+  // how the glyphs themselves look — deliberately the same regardless of
+  // direction, lineBreak, or punctuation, so switching those never shifts
+  // the type.
   const fontStack =
     FONT_OPTIONS.find((option) => option.id === fontFamily)?.stack ??
     FONT_OPTIONS[0].stack;
@@ -42,13 +45,17 @@ export function CalligraphyText({
   return (
     <div
       className={`calligraphy-text calligraphy-text--${direction}`}
-      style={{ fontFamily: fontStack, fontSize: `${fontSize}px` }}
+      style={{
+        fontFamily: fontStack,
+        fontSize: `${fontSize}px`,
+        fontWeight: bold ? 700 : 400,
+      }}
     >
       {segments.map((segment, index) => (
         <p
           className="calligraphy-text__segment"
           key={index}
-          style={{ [offsetProperty]: `${offsets[index]}em` }}
+          style={{ [offsetProperty]: `${offsets[index]}em`, gap: `${charSpacing}em` }}
         >
           {/* Array.from splits by Unicode code point, not UTF-16 code
               unit, so rarer CJK characters outside the BMP stay intact. */}

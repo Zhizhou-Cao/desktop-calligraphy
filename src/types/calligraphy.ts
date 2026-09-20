@@ -36,6 +36,11 @@ export const FONT_OPTIONS: FontOption[] = [
     stack: '"Libian SC", "STLiti", "Kaiti SC", serif',
   },
   {
+    id: "hanli",
+    label: "汉隶",
+    stack: '"Baoli SC", "STLiti", "Libian SC", serif',
+  },
+  {
     id: "fangsong",
     label: "仿宋",
     stack: '"STFangsong", "Fangsong SC", "Songti SC", serif',
@@ -84,6 +89,13 @@ export interface CalligraphySettings {
   // In px. Same note as fontFamily: constant across direction/lineBreak/
   // showPunctuation changes.
   fontSize: number;
+  // Bold on/off. Same note as fontFamily/fontSize.
+  bold: boolean;
+  // Gap between adjacent characters within a line/column, in em of the
+  // text's own font-size — NOT the gap between separate lines/columns
+  // (that one stays fixed in CalligraphyText.css; it's more about overall
+  // layout than glyph spacing). Same note as fontFamily/fontSize.
+  charSpacing: number;
   // One of PAPER_STYLE_OPTIONS' ids.
   paperStyle: string;
   // 0-100. How opaque the paper's own background/texture is — 100 is
@@ -103,6 +115,10 @@ export const FONT_SIZE_MIN = 16;
 export const FONT_SIZE_MAX = 36;
 export const FONT_SIZE_STEP = 2;
 
+export const CHAR_SPACING_MIN = 0;
+export const CHAR_SPACING_MAX = 1;
+export const CHAR_SPACING_STEP = 0.05;
+
 export const PAPER_OPACITY_MIN = 0;
 export const PAPER_OPACITY_MAX = 100;
 
@@ -114,6 +130,8 @@ export const DEFAULT_SETTINGS: CalligraphySettings = {
   padding: 2,
   fontFamily: "kaiti",
   fontSize: 24,
+  bold: false,
+  charSpacing: 0.3,
   paperStyle: "rice",
   paperOpacity: 100,
 };

@@ -1,6 +1,15 @@
 .calligraphy-text {
   margin: 0;
   color: #2b2620;
+  /* Browser default line-height for CJK fonts is often ~1.2-1.4x the
+     font-size (extra ascent/descent baked into the font's own metrics) —
+     invisible slack in horizontal mode (it just pads each row's own
+     height), but in vertical mode that same slack stacks up as real,
+     visible air between characters, since a column's items are sized by
+     each span's line-height. 1 makes a span's box match its font-size, so
+     charSpacing's "gap" is the only vertical spacing left to account for.
+  */
+  line-height: 1;
   /* font-family/font-size are set as an inline style from settings (see
      CalligraphyText.tsx) — deliberately NOT redeclared per-direction below,
      so switching horizontal/vertical never changes the glyphs themselves. */
@@ -15,6 +24,8 @@
 .calligraphy-text__segment {
   margin: 0;
   display: flex;
+  /* gap (the space between characters within this line/column) is set
+     inline from settings.charSpacing — see CalligraphyText.tsx. */
 }
 
 .calligraphy-text--horizontal {
@@ -29,7 +40,6 @@
 
 .calligraphy-text--horizontal .calligraphy-text__segment {
   flex-direction: row;
-  gap: 0.3em;
 }
 
 /* Traditional reading order runs right to left, so segments are laid out
@@ -46,5 +56,4 @@
 
 .calligraphy-text--vertical .calligraphy-text__segment {
   flex-direction: column;
-  gap: 0.35em;
 }

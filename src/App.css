@@ -1,5 +1,10 @@
 :root {
-  font-synthesis: none;
+  /* Most system CJK calligraphy fonts (楷体/隶书/汉隶/魏碑…) only ship one
+     weight — no real bold face. "weight" lets the browser synthesize
+     (embolden) bold for those instead of silently ignoring
+     settings.bold; italic synthesis stays off since nothing here uses
+     italics and faux-italic CJK tends to look wrong. */
+  font-synthesis: weight;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
