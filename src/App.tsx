@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { currentMonitor, getCurrentWindow } from "@tauri-apps/api/window";
+import { load, type Store } from "@tauri-apps/plugin-store";
 import { CalligraphyText } from "./components/CalligraphyText";
 import { LibraryPopup } from "./components/LibraryPopup";
 import { SettingsButton } from "./components/SettingsButton";
@@ -31,6 +32,12 @@ const PANEL_FOOTPRINT_LOGICAL = 200 + 12;
 
 type PanelSide = "left" | "right";
 
+// Persisted on disk (app_data_dir), independent of the webview's own
+// cache/storage — survives app restarts and updates, only gone if the app
+// itself is uninstalled. See the phrases load/save effects in App().
+const PHRASES_STORE_FILE = "phrases.json";
+const PHRASES_STORE_KEY = "phrases";
+
 function App() {
   const [movable, setMovable] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -40,12 +47,49 @@ function App() {
     DEFAULT_WINDOW_BEHAVIOR,
   );
   const [library, setLibrary] = useState(DEFAULT_LIBRARY_STATE);
-  // Single mutable list — seeded from the built-in PHRASES, but every
-  // entry (built-in or later added) can be edited/deleted/favorited
-  // equally from here on. Not persisted across restarts.
+  // Single mutable list — seeded from the built-in PHRASES on first ever
+  // launch, but every entry (built-in or later added) can be edited/
+  // deleted/favorited equally from here on. Persisted to disk below, so
+  // edits survive app restarts.
   const [phrases, setPhrases] = useState<PhraseEntry[]>(() =>
     PHRASES.map((text) => ({ text, favorite: false })),
   );
+  const phraseStoreRef = useRef<Store | null>(null);
+  const [phrasesLoaded, setPhrasesLoaded] = useState(false);
+
+  // Load once on mount: if a store already exists on disk (not a first
+  // launch), it overrides the built-in seed above; either way,
+  // phrasesLoaded flips true afterward so the save effect below knows it's
+  // safe to start writing (and, on a genuine first launch, persists that
+  // seed immediately instead of waiting for the user's first edit).
+  useEffect(() => {
+    let cancelled = false;
+    load(PHRASES_STORE_FILE).then(async (store) => {
+      if (cancelled) return;
+      phraseStoreRef.current = store;
+      const saved = await store.get<PhraseEntry[]>(PHRASES_STORE_KEY);
+      if (cancelled) return;
+      if (saved && saved.length > 0) {
+        setPhrases(saved);
+      }
+      setPhrasesLoaded(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!phrasesLoaded) return;
+    const store = phraseStoreRef.current;
+    if (!store) return;
+    store
+      .set(PHRASES_STORE_KEY, phrases)
+      .then(() => store.save())
+      .catch(() => {
+        // Best-effort — nothing to recover if the disk write fails.
+      });
+  }, [phrases, phrasesLoaded]);
 
   // Tracks the paper's own on-screen position; opening/closing a popup
   // beside or below it never moves that anchor, only the window edges on

@@ -22,6 +22,7 @@ tauri = { version = "2", features = ["macos-private-api"] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+tauri-plugin-store = "2.4.5"
 
 # Only used to set the window's NSWindowCollectionBehavior on macOS so it
 # stays visible across every Space instead of just the one it launched on

@@ -65,6 +65,7 @@ fn set_all_spaces(window: tauri::WebviewWindow, enabled: bool) {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_store::Builder::default().build())
         .invoke_handler(tauri::generate_handler![
             greet,
             resize_and_reposition,
